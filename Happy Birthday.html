@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Happy Birthday Maxinne</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #03030d;
+      overflow: hidden;
+      font-family: "Poppins", sans-serif;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* Fading pictures */
+    .fade-img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 50vw;
+      max-height: 50vh;
+      opacity: 0;
+      transition: opacity 2s ease-in-out, top 1s ease-in-out;
+      pointer-events: none;
+      border-radius: 12px;
+    }
+
+    /* Birthday message */
+    .message {
+      position: absolute;
+      top: 70%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 72px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      opacity: 0;
+      text-align: center;
+      text-shadow: 0px 0px 25px rgba(255,255,255,0.35);
+      pointer-events: none;
+      transition: opacity 5s ease-in-out; /* slow fade-in */
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<!-- Replace these with your actual pictures -->
+<img class="fade-img" id="img1" src="120.jpg">
+<img class="fade-img" id="img2" src="121.jpg">
+<img class="fade-img" id="img3" src="122.jpg">
+
+<div class="message" id="msg">Happy Birthday Maxinne</div>
+
+<script>
+/* ==========================================================
+   FIREWORKS (INFINITE LOOP)
+========================================================== */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let W, H;
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.onresize = resize;
+resize();
+
+const particles = [];
+function random(min, max){ return Math.random() * (max - min) + min; }
+
+class Particle {
+  constructor(x, y, color){
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.speed = random(3, 6);
+    this.angle = random(0, Math.PI * 2);
+    this.radius = random(1.5, 2.8);
+    this.life = 1;
+  }
+  update(){
+    this.x += Math.cos(this.angle) * this.speed;
+    this.y += Math.sin(this.angle) * this.speed;
+    this.speed *= 0.96;
+    this.life -= 0.02;
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${this.color.r},${this.color.g},${this.color.b},${this.life})`;
+    ctx.fill();
+  }
+}
+
+function spawnFirework(){
+  const x = random(150, W - 150);
+  const y = random(80, H/2);
+  const color = {
+    r: Math.floor(random(170, 255)),
+    g: Math.floor(random(130, 255)),
+    b: Math.floor(random(180, 255))
+  };
+
+  for(let i = 0; i < random(130, 220); i++){
+    particles.push(new Particle(x, y, color));
+  }
+}
+
+function loop(){
+  ctx.fillStyle = "rgba(3,3,13,0.25)";
+  ctx.fillRect(0,0,W,H);
+
+  particles.forEach((p, i) => {
+    p.update();
+    p.draw();
+    if(p.life <= 0) particles.splice(i, 1);
+  });
+
+  if(Math.random() < 0.04){
+    spawnFirework();
+  }
+
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* ==========================================================
+   DISPLAY 3 PICTURES IN SEQUENCE
+========================================================== */
+const imgs = [
+  document.getElementById("img1"),
+  document.getElementById("img2"),
+  document.getElementById("img3")
+];
+
+function fadeInPicturesSequentially(callback){
+  let i = 0;
+  function showNext(){
+    if(i >= imgs.length){
+      if(callback) callback(); // call after all pics visible
+      return;
+    }
+    imgs[i].style.opacity = 1;
+    i++;
+    setTimeout(showNext, 1500); // 1.5s between each
+  }
+  showNext();
+}
+
+/* ==========================================================
+   FADE IN GREETING AND PUSH UP ALL PICTURES SIMULTANEOUSLY
+========================================================== */
+function showGreetingAndPushPics(){
+  const msg = document.getElementById("msg");
+  msg.style.opacity = 1; // fade in greeting slowly
+
+  // Push all images up simultaneously
+  imgs.forEach(img => {
+    img.style.top = "30%"; // move all images up to 30%
+  });
+}
+
+// Start the sequence: fade in pictures first
+fadeInPicturesSequentially(() => {
+  // after all 3 images have faded in, wait 1s then show greeting and push up photos
+  setTimeout(showGreetingAndPushPics, 1000);
+});
+</script>
+
+</body>
+</html>
